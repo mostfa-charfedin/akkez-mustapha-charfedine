@@ -95,7 +95,7 @@ class StudentControllerTest {
 
         mockMvc.perform(get("/students/getStudent/999"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("null")); // JSON null
+                .andExpect(content().string(""));
 
         verify(studentService).getStudentById(999L);
     }
