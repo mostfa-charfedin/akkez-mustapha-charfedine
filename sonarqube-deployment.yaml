@@ -1,0 +1,55 @@
+# SonarQube ultra-simple : base H2 embarquée (pas besoin de MySQL ni PostgreSQL)
+# Parfait pour un atelier, zéro configuration DB
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarqube
+  namespace: devops
+  labels:
+    app: sonarqube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarqube
+  template:
+    metadata:
+      labels:
+        app: sonarqube
+    spec:
+      initContainers:
+        - name: increase-vm-max-map
+          image: busybox
+          command: ['sh', '-c', "sysctl -w vm.max_map_count=524288"]
+          securityContext:
+            privileged: true
+      containers:
+        - name: sonarqube
+          image: sonarsource/sonarqube:lts-community
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          ports:
+            - containerPort: 9000
+          # Aucune variable d'environnement = SonarQube utilise H2 par défaut (base embarquée)
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarqube-service
+  namespace: devops
+spec:
+  selector:
+    app: sonarqube
+  ports:
+    - port: 9000
+      targetPort: 9000
+      nodePort: 30090
+  type: NodePort
