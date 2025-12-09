@@ -1,5 +1,4 @@
-# SonarQube ultra-simple : base H2 embarquée (pas besoin de MySQL ni PostgreSQL)
-# Parfait pour un atelier, zéro configuration DB
+# sonarqube.yaml – SonarQube dans le namespace devops (atelier ESPRIT 2025-2026)
 
 ---
 apiVersion: apps/v1
@@ -21,23 +20,33 @@ spec:
     spec:
       initContainers:
         - name: increase-vm-max-map
-          image: busybox
-          command: ['sh', '-c', "sysctl -w vm.max_map_count=524288"]
+          image: busybox:1.28
+          command: ['sh', '-c', 'sysctl -w vm.max_map_count=524288']
           securityContext:
             privileged: true
       containers:
         - name: sonarqube
-          image: sonarsource/sonarqube:lts-community
+          image: sonarqube:10.5-community          # Image officielle, petite, rapide à pull
+          imagePullPolicy: IfNotPresent             # Utilise le cache si déjà téléchargée
           resources:
             requests:
-              memory: "2Gi"
-              cpu: "1000m"
+              memory: "1536Mi"
+              cpu: "500m"
             limits:
-              memory: "4Gi"
-              cpu: "2000m"
+              memory: "3Gi"
+              cpu: "1500m"
           ports:
             - containerPort: 9000
-          # Aucune variable d'environnement = SonarQube utilise H2 par défaut (base embarquée)
+          env:
+            - name: SONAR_ES_BOOTSTRAP_CHECKS_DISABLE
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /api/system/status
+              port: 9000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 10
 
 ---
 apiVersion: v1
