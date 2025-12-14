@@ -1,5 +1,30 @@
-# sonarqube.yaml – SonarQube dans le namespace devops (atelier ESPRIT 2025-2026)
+# sonarqube-deployment.yaml – SonarQube avec persistance pour Minikube
 
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sonarqube-pv
+  namespace: devops
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data/sonarqube   # dossier sur ton système Minikube/WSL
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarqube-pvc
+  namespace: devops
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -26,8 +51,8 @@ spec:
             privileged: true
       containers:
         - name: sonarqube
-          image: sonarqube:10.5-community          # Image officielle, petite, rapide à pull
-          imagePullPolicy: IfNotPresent             # Utilise le cache si déjà téléchargée
+          image: sonarqube:10.5-community
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: "1200Mi"
@@ -40,6 +65,9 @@ spec:
           env:
             - name: SONAR_ES_BOOTSTRAP_CHECKS_DISABLE
               value: "true"
+          volumeMounts:
+            - mountPath: /opt/sonarqube/data
+              name: sonarqube-storage
           readinessProbe:
             httpGet:
               path: /api/system/status
@@ -47,6 +75,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 30
             failureThreshold: 10
+      volumes:
+        - name: sonarqube-storage
+          persistentVolumeClaim:
+            claimName: sonarqube-pvc
 
 ---
 apiVersion: v1
