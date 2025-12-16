@@ -76,7 +76,7 @@ spec:
     - name: prometheus
       port: 9090
       targetPort: 9090
-      nodePort: 30090
+      nodePort: 30099
     - name: grafana
       port: 3000
       targetPort: 3000
