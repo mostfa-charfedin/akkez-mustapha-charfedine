@@ -36,8 +36,9 @@ spec:
       containers:
         - name: spring-app
           image: mostfacharfedin/studentmanagement:latest
+          imagePullPolicy: Always
           ports:
-            - containerPort: 8081
+            - containerPort: 8089
           resources:
             requests:
               memory: "512Mi"

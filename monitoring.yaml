@@ -14,17 +14,20 @@ data:
 
       - job_name: 'ubuntu-wsl'
         static_configs:
-          - targets: ['localhost:9100'] # Pointe vers ton Node Exporter sur WSL
-
+          # Utilise ton IP de passerelle WSL confirmée
+          - targets: ['172.20.198.25:9100']
+      
       - job_name: 'jenkins'
         metrics_path: '/prometheus/'
         static_configs:
-          - targets: ['172.20.198.25:8080'] # Pointe vers ton Jenkins sur Windows/WSL
+          # Utilise ton IP d'hôte pour Jenkins
+          - targets: ['172.20.198.25:8080']
 
-      - job_name: 'spring-boot'
-        metrics_path: '/actuator/prometheus'
+      - job_name: 'spring-app'
+        metrics_path: '/student/actuator/prometheus'
         static_configs:
-          - targets: ['localhost:8089'] # Utilise le DNS Kubernetes du service
+          # Utilise le nom DNS interne de ton service Spring
+          - targets: ['spring-service.devops.svc.cluster.local:8089']
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -42,6 +45,7 @@ spec:
         app: monitoring
     spec:
       containers:
+        # --- PROMETHEUS ---
         - name: prometheus
           image: prom/prometheus:latest
           args:
@@ -55,6 +59,8 @@ spec:
             - name: config-volume
               mountPath: /etc/prometheus/prometheus.yml
               subPath: prometheus.yml
+
+        # --- GRAFANA ---
         - name: grafana
           image: grafana/grafana:latest
           ports:
@@ -62,6 +68,7 @@ spec:
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana
+
       volumes:
         - name: prometheus-storage
           persistentVolumeClaim:
