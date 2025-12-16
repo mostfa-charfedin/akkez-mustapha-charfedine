@@ -84,4 +84,4 @@ spec:
     - name: grafana
       port: 3000
       targetPort: 3000
-      nodePort: 30030
+      nodePort: 30033
