@@ -2,6 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: prometheus-pvc
+  namespace: devops
 spec:
   accessModes:
     - ReadWriteOnce
@@ -13,6 +14,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: grafana-pvc
+  namespace: devops
 spec:
   accessModes:
     - ReadWriteOnce
@@ -24,6 +26,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: monitoring-stack
+  namespace: devops
 spec:
   replicas: 1
   selector:
@@ -35,7 +38,7 @@ spec:
         app: monitoring
     spec:
       containers:
-        # --- Prometheus avec Volume ---
+        # --- Prometheus ---
         - name: prometheus
           image: prom/prometheus:latest
           ports:
@@ -47,7 +50,7 @@ spec:
             - "--config.file=/etc/prometheus/prometheus.yml"
             - "--storage.tsdb.path=/prometheus"
 
-        # --- Grafana avec Volume ---
+        # --- Grafana ---
         - name: grafana
           image: grafana/grafana:latest
           ports:
@@ -68,6 +71,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: monitoring-service
+  namespace: devops
 spec:
   type: NodePort
   selector:
